@@ -1,0 +1,6 @@
+https://gist.github.com/pablormier/0caff10a5f76e87857b44f63757729b0
+https://induraj2020.medium.com/implementing-particle-swarm-optimization-in-python-c59278bc5846
+
+ChatGPT 4o archív: https://chatgpt.com/share/6745987e-3118-8004-ae9b-848d50b44ee2
+
+Zdroje a časti generované GPT sú pod komentármi priamo v kóde
