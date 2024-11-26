@@ -161,6 +161,9 @@ def three_hump_camel_function(x):
 def xin_she_yang_function(x):
     return np.sum(np.abs(x) * np.exp(-np.sin(x**2)))
 
+def sum_of_different_powers_function(x):
+    return np.sum([np.abs(x[i])**(i + 2) for i in range(len(x))])
+
 # Vlastné
 
 def visualize(testing_function, best_solution, best_value):
@@ -174,7 +177,7 @@ def visualize(testing_function, best_solution, best_value):
     plt.contourf(X, Y, Z, levels=50, cmap='viridis')
     plt.colorbar()
     plt.scatter(best_solution[0], best_solution[1], color='red', marker='x', label='Best Solution')
-    plt.title(testing_function.__name__)
+    plt.title(f"2D Contour Plot: {testing_function.__name__}")
     plt.xlabel('x')
     plt.ylabel('y')
     plt.legend()
@@ -185,7 +188,7 @@ def visualize(testing_function, best_solution, best_value):
     ax = fig.add_subplot(111, projection='3d')
     ax.plot_surface(X, Y, Z, cmap='viridis', alpha=0.7)
     ax.scatter(best_solution[0], best_solution[1], best_value, color='red', marker='x', s=100, label='Best Solution')
-    ax.set_title(testing_function.__name__)
+    ax.set_title(f"3D Surface Plot: {testing_function.__name__}")
     ax.set_xlabel('x')
     ax.set_ylabel('y')
     ax.set_zlabel('f(x, y)')
@@ -200,12 +203,13 @@ def run_testing_function(testing_function):
     visualize(testing_function, best_solution, best_value)
 
 testing_functions = [
-    rastrigin_function,
+    sum_of_different_powers_function,
     ackley_function,
-    sphere_function,
+    rastrigin_function,
     rosenbrock_function,
     griewank_function,
     schwefel_function,
+    sphere_function,
     levy_function,
     zakharov_function,
     michalewicz_function,
@@ -213,7 +217,7 @@ testing_functions = [
     booth_function,
     easom_function,
     three_hump_camel_function,
-    xin_she_yang_function
+    xin_she_yang_function,
 ]
 
 for testing_function in testing_functions:
