@@ -1,18 +1,28 @@
-from scipy.stats import friedmanchisquare
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import numpy as np
+import time
 from part_1 import *
 
-BOUNDS = [-100, 100]
+# Experiment pre jednu kombináciu
+def run_experiment(func, alg, alg_name, dim, pop_size, f_evals, repeat):
+    """
+    Spustí jeden experiment pre danú kombináciu funkcie, algoritmu, dimenzie a počtu opakovaní.
+    """
+    fitness_values = []
+    for _ in range(repeat):
+        if alg_name == "PSO":
+            best_solution, best_fitness = alg(func, dim=dim, num_particles=pop_size, max_iter=f_evals // pop_size)
+        else:
+            best_solution, best_fitness = alg(func, bounds=[BOUNDS] * dim, popsize=pop_size, its=f_evals // pop_size)
+        fitness_values.append(best_fitness)
+    return (func.__name__, alg_name, dim, np.mean(fitness_values), np.std(fitness_values))
 
 
-def friedman_test(results):
-    test_stat, p_value = friedmanchisquare(*results)
-    print(f"Friedman test statistic: {test_stat}, p-value: {p_value}")
-    if p_value < 0.05:
-        print("Výsledky sú štatisticky významné.")
-    else:
-        print("Výsledky nie sú štatisticky významné.")
-
-def main():
+# Paralelné spúšťanie experimentov
+def parallel_experiment():
+    """
+    Paralelne spúšťa experimenty pre všetky kombinácie funkcií, dimenzií a algoritmov.
+    """
     dim_sizes = [2, 10, 20]
     pop_sizes = {2: 10, 10: 20, 20: 40}
     num_repeats = 20
@@ -30,27 +40,34 @@ def main():
         griewank_function,
     ]
 
-    results = {func.__name__: {alg: [] for alg in algorithms} for func in testing_functions}
+    results = []
 
-    for func in testing_functions:
-        for dim in dim_sizes:
-            pop_size = pop_sizes[dim]
-            f_evals = f_evals_multiplier * dim
-            for alg_name, alg in algorithms.items():
-                fitness_values = []
-                for _ in range(num_repeats):
-                    if alg_name == "PSO":
-                        best_solution, best_fitness = alg(func, dim=dim, num_particles=pop_size, max_iter=f_evals)
-                    else:
-                        best_solution, best_fitness = alg(func, bounds=[BOUNDS] * dim, popsize=pop_size, its=f_evals)
-                    fitness_values.append(best_fitness)
-                results[func.__name__][alg_name] = fitness_values
+    # Paralelizácia
+    start_time = time.time()
+    with ThreadPoolExecutor(max_workers=12) as executor:  # 12 vlákien
+        futures = []
+        for func in testing_functions:
+            for dim in dim_sizes:
+                pop_size = pop_sizes[dim]
+                f_evals = f_evals_multiplier * dim
+                for alg_name, alg in algorithms.items():
+                    futures.append(
+                        executor.submit(run_experiment, func, alg, alg_name, dim, pop_size, f_evals, num_repeats)
+                    )
 
-    #Poradie
-    for func_name, func_results in results.items():
-        print(f"\nVyhodnotenie pre funkciu: {func_name}")
-        data = [np.mean(func_results[alg]) for alg in algorithms]
-        friedman_test(data)
+        # Zber výsledkov
+        for future in as_completed(futures):
+            results.append(future.result())
 
-main()
-print("Done")
+    end_time = time.time()
+    print(f"Experiment trval {end_time - start_time:.2f} sekúnd.")
+
+    # Výpis výsledkov
+    for result in results:
+        func_name, alg_name, dim, mean_fitness, std_fitness = result
+        print(f"Funkcia: {func_name}, Algoritmus: {alg_name}, Dimenzia: {dim}, "
+              f"Priemerné fitness: {mean_fitness:.4f}, Štandardná odchýlka: {std_fitness:.4f}")
+
+    return results
+
+parallel_experiment()
