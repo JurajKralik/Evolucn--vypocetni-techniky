@@ -220,5 +220,6 @@ testing_functions = [
     xin_she_yang_function,
 ]
 
-for testing_function in testing_functions:
-    run_testing_function(testing_function)
+def main():
+    for testing_function in testing_functions:
+        run_testing_function(testing_function)
